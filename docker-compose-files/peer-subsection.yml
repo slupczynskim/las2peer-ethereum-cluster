@@ -3,6 +3,7 @@
         hostname: ethereum-peer-1
         depends_on: ["ethereum-monitor", "ethereum-boot"]
         image: rwthacis/monitored-eth-client
+        cpus: "CPULIMIT"
         environment:
             - "PEER_MINE=1"
             - "ETHEREUM_BOOTSTRAP=ethereum-boot:30303"
@@ -13,12 +14,18 @@
             - "30303/udp"
             - "8545"
         networks:
-            - las2peernet
+            - l2pnet
     las2peer-peer-1:
         container_name: las2peer-peer-1
         hostname: las2peer-peer-1
         depends_on: ["ethereum-peer-1", "las2peer-boot"]
-        image: tjanson/las2peer:develop
+        image: rwthacis/las2peer
+        volumes:
+            - ./share/agents:/app/las2peer/etc/agents
+            - ./share/ssl:/app/las2peer/etc/ssl
+            - ./share/lib:/app/las2peer/lib
+            - ./share/properties:/app/las2peer/properties
+            - ./share/service:/app/las2peer/service
         environment:
             - "LAS2PEER_CONFIG_ENDPOINT=172.18.0.10:8001"
             - "LAS2PEER_BOOTSTRAP=172.18.0.10:9000"
@@ -28,6 +35,6 @@
             - "9000/udp"
             - "8080"
         networks:
-            - las2peernet
+            - l2pnet
         stdin_open: true
         tty: true

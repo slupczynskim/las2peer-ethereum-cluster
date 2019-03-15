@@ -1,6 +1,11 @@
-version: "3"
+version: "2.2"
 networks:
-    las2peernet:
+    l2pnet:
+        driver: bridge
+        ipam:
+           config:
+               - subnet: 172.18.0.0/16
+                 gateway: 172.18.0.1
 services:
     ethereum-monitor:
         hostname: ethereum-monitor
@@ -12,7 +17,7 @@ services:
         ports:
             - "3000:3000"
         networks:
-            - las2peernet
+            - l2pnet
     ethereum-boot:
         hostname: ethereum-boot
         container_name: ethereum-boot
@@ -26,20 +31,29 @@ services:
             - "30303/udp"
             - "8545:8545"
         networks:
-            - las2peernet
+            - l2pnet
     las2peer-boot:
-        hostname: las2peer-boot
+        hostname: las2peer.dbis.rwth-aachen.de
         container_name: las2peer-boot
         depends_on: ["ethereum-boot"]
         image: rwthacis/las2peer
+        volumes:
+            - ./share/agents:/app/las2peer/etc/agents
+            - ./share/ssl:/app/las2peer/etc/ssl
+            - ./share/lib:/app/las2peer/lib
+            - ./share/properties:/app/las2peer/properties
+            - ./share/service:/app/las2peer/service
         environment:
             - "LAS2PEER_ETH_HOST=ethereum-boot"
+            - "EXTRA_ETH_WAIT=40"
         ports:
-            - "9000"
-            - "9000/udp"
+            - "9080"
+            - "9080/udp"
             - "8001"
-            - "8080:8080"
+            - "8080"
+            - "9098:9098"
         networks:
-            - las2peernet
+            l2pnet:
+                ipv4_address: 172.18.0.10
         stdin_open: true
         tty: true
